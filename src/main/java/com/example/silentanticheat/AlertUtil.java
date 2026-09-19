@@ -40,7 +40,7 @@ public final class AlertUtil {
 
         for (ServerPlayer online : server.getPlayerList().getPlayers()) {
             // Permission level 2 == /op default. Use the server's operator list directly.
-            if (server.getPlayerList().isOp(online.getGameProfile())) {
+            if (server.getPlayerList().isOp(online.nameAndId())) {
                 online.sendSystemMessage(opMessage);
             }
         }
