@@ -27,18 +27,20 @@ public final class AlertUtil {
      * Logs to console and pings every online op with a styled chat message.
      */
     public static void alert(MinecraftServer server, ServerPlayer suspect, String checkName, String detail) {
-        String consoleMessage = "[SilentAntiCheat] " + suspect.getGameProfile().getName()
+        String suspectName = suspect.getName().getString();
+
+        String consoleMessage = "[SilentAntiCheat] " + suspectName
                 + " flagged " + checkName + " - " + detail;
 
         LOGGER.warn(consoleMessage);
 
-        Component opMessage = Component.literal("[AntiCheat] " + suspect.getGameProfile().getName()
+        Component opMessage = Component.literal("[AntiCheat] " + suspectName
                         + " failed " + checkName + " check: " + detail)
                 .setStyle(ALERT_STYLE);
 
         for (ServerPlayer online : server.getPlayerList().getPlayers()) {
-            // Permission level 2 == /op default. Adjust if your server uses a permissions plugin instead.
-            if (online.hasPermissions(2)) {
+            // Permission level 2 == /op default. Use the server's operator list directly.
+            if (server.getPlayerList().isOp(online.getGameProfile())) {
                 online.sendSystemMessage(opMessage);
             }
         }
