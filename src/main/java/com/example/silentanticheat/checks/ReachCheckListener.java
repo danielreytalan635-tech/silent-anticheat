@@ -25,7 +25,7 @@ public final class ReachCheckListener {
                 double distance = eyePos.distanceTo(entity.position());
 
                 if (distance > MAX_REACH_DISTANCE) {
-                    AlertUtil.alert(serverPlayer.getServer(), serverPlayer, "Reach (Attack)",
+                    AlertUtil.alert(level.getServer(), serverPlayer, "Reach (Attack)",
                             String.format("attacked an entity from %.2f blocks away", distance));
                 }
             }
@@ -35,11 +35,15 @@ public final class ReachCheckListener {
         PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, blockEntity) -> {
             if (player instanceof ServerPlayer serverPlayer) {
                 Vec3 eyePos = serverPlayer.getEyePosition();
-                Vec3 blockCenter = pos.getCenter();
+                Vec3 blockCenter = new Vec3(
+                        pos.getX() + 0.5,
+                        pos.getY() + 0.5,
+                        pos.getZ() + 0.5
+                );
                 double distance = eyePos.distanceTo(blockCenter);
 
                 if (distance > MAX_REACH_DISTANCE) {
-                    AlertUtil.alert(serverPlayer.getServer(), serverPlayer, "Reach (Block Break)",
+                    AlertUtil.alert(level.getServer(), serverPlayer, "Reach (Block Break)",
                             String.format("broke a block from %.2f blocks away", distance));
                 }
             }
