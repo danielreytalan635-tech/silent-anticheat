@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "silent-anticheat",
+  "version": "${version}",
+  "name": "Silent AntiCheat",
+  "description": "Server-side-only, alert-only anti-cheat. Never kicks, bans, or rubberbands -- flags suspicious flight, speed, and reach to console and ops.",
+  "authors": ["YourName"],
+  "contact": {
+    "homepage": "https://github.com/yourname/silent-anticheat"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "server": [
+      "com.example.silentanticheat.SilentAntiCheat"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "fabric-api": "*"
+  }
+}
