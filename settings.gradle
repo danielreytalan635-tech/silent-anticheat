@@ -1,12 +1,9 @@
 pluginManagement {
     repositories {
-        maven {
-            name = "Fabric"
-            url = "https://maven.fabricmc.net/"
-        }
+        maven { url = "https://fabricmc.net" }
         mavenCentral()
         gradlePluginPortal()
     }
 }
 
-rootProject.name = "silent-anticheat"
+rootProject.name = 'silent-anticheat'
