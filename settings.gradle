@@ -1,8 +1,8 @@
 pluginManagement {
     repositories {
-        maven { url = "https://fabricmc.net" }
-        mavenCentral()
+        maven { url "https://maven.fabricmc.net/" }
         gradlePluginPortal()
+        mavenCentral()
     }
 }
 
