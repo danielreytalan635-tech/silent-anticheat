@@ -19,8 +19,8 @@ import java.util.UUID;
  *  - Flight/Hover: too many consecutive airborne ticks with no legitimate reason.
  *  - Speed/Teleport: moved further in one tick than should be legally possible.
  *
- * These thresholds are deliberately conservative to avoid false positives; tune
- * them to your server's allowed potion effects / mods before relying on them.
+ * Server-side teleports are explicitly marked and given a short grace period so
+ * commands and mods such as /spawn are not misclassified as speed/teleport cheats.
  */
 public final class MovementCheckListener {
 
@@ -34,6 +34,10 @@ public final class MovementCheckListener {
     // Speed II potion, stays well under this.
     private static final double MAX_DISTANCE_PER_TICK = 10.0;
 
+    // Ignore the position delta created by a server-side teleport and the next
+    // tick so /spawn and other server/mod teleports are treated as legitimate.
+    private static final int SERVER_TELEPORT_GRACE_TICKS = 2;
+
     private MovementCheckListener() {
     }
 
@@ -41,11 +45,39 @@ public final class MovementCheckListener {
         ServerTickEvents.END_SERVER_TICK.register(MovementCheckListener::onServerTick);
     }
 
+    /**
+     * Called by the ServerPlayer teleport mixin after a server-side teleport
+     * succeeds. This covers vanilla commands and mods that use ServerPlayer#teleportTo.
+     */
+    public static void markServerTeleport(ServerPlayer player) {
+        PlayerCheckData data = DATA.computeIfAbsent(
+                player.getUUID(),
+                id -> new PlayerCheckData(player.position())
+        );
+
+        data.lastPosition = player.position();
+        data.serverTeleportGraceTicks = SERVER_TELEPORT_GRACE_TICKS;
+        data.airborneTicks = 0;
+        data.flightAlertSent = false;
+    }
+
     private static void onServerTick(MinecraftServer server) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            PlayerCheckData data = DATA.computeIfAbsent(player.getUUID(), id -> new PlayerCheckData(player.position()));
+            PlayerCheckData data = DATA.computeIfAbsent(
+                    player.getUUID(),
+                    id -> new PlayerCheckData(player.position())
+            );
 
             Vec3 currentPos = player.position();
+
+            if (data.serverTeleportGraceTicks > 0) {
+                data.serverTeleportGraceTicks--;
+                data.lastPosition = currentPos;
+                data.airborneTicks = 0;
+                data.flightAlertSent = false;
+                continue;
+            }
+
             double distanceMoved = currentPos.distanceTo(data.lastPosition);
 
             checkSpeedAndTeleport(server, player, distanceMoved);
@@ -58,7 +90,11 @@ public final class MovementCheckListener {
         DATA.keySet().removeIf(uuid -> server.getPlayerList().getPlayer(uuid) == null);
     }
 
-    private static void checkSpeedAndTeleport(MinecraftServer server, ServerPlayer player, double distanceMoved) {
+    private static void checkSpeedAndTeleport(
+            MinecraftServer server,
+            ServerPlayer player,
+            double distanceMoved
+    ) {
         if (player.isFallFlying() || player.getVehicle() != null || player.isSpectator()) {
             return; // Elytra, minecarts/boats, and spectators legitimately cover huge distances.
         }
@@ -69,7 +105,11 @@ public final class MovementCheckListener {
         }
     }
 
-    private static void checkFlight(MinecraftServer server, ServerPlayer player, PlayerCheckData data) {
+    private static void checkFlight(
+            MinecraftServer server,
+            ServerPlayer player,
+            PlayerCheckData data
+    ) {
         if (isExemptFromFlightCheck(player)) {
             data.airborneTicks = 0;
             data.flightAlertSent = false;

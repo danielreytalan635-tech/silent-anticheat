@@ -10,6 +10,7 @@ public class PlayerCheckData {
     public Vec3 lastPosition;
     public int airborneTicks = 0;
     public boolean flightAlertSent = false;
+    public int serverTeleportGraceTicks = 0;
 
     public PlayerCheckData(Vec3 initialPosition) {
         this.lastPosition = initialPosition;
